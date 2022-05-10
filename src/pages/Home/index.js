@@ -12,6 +12,7 @@ import {Button, CustomModal, Gap, List} from '../../components';
 import {colors} from '../../utils';
 import {ICDown, ICUp} from '../../assets';
 import Axios from 'axios';
+import {showMessage} from 'react-native-flash-message';
 
 const Home = () => {
   const [data, setData] = useState([]);
@@ -23,7 +24,6 @@ const Home = () => {
   const [amount, setAmount] = useState(2);
   const [btn, setBtn] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [top, setTop] = useState(0);
 
   useEffect(() => {
     getDataListView();
@@ -35,7 +35,16 @@ const Home = () => {
         const newData = res.data.categories;
         setData(newData);
       })
-      .catch(err => console.log(err));
+      .catch(() =>
+        showMessage({
+          message: 'Failed to fetching data, please check your connection',
+          type: 'danger',
+          style: {
+            justifyContent: 'center',
+            alignItems: 'center',
+          },
+        }),
+      );
     return () => datas;
   };
 
@@ -47,7 +56,16 @@ const Home = () => {
         const newData = res?.data?.jokes;
         setChildData(newData);
       })
-      .catch(err => console.log(err));
+      .catch(() => {
+        showMessage({
+          message: 'Failed to fetching data, please check your connection',
+          type: 'danger',
+          style: {
+            justifyContent: 'center',
+            alignItems: 'center',
+          },
+        });
+      });
 
     return () => datas;
   };
