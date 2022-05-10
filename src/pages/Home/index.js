@@ -27,29 +27,33 @@ const Home = () => {
 
   useEffect(() => {
     getDataListView();
-  }, [amount]);
+  }, []);
 
   const getDataListView = () => {
-    const datas = Axios.get('https://v2.jokeapi.dev/categories').then(res => {
-      const newData = res.data.categories;
-
-      setData(newData);
-    });
+    const datas = Axios.get('https://v2.jokeapi.dev/categories')
+      .then(res => {
+        const newData = res.data.categories;
+        setData(newData);
+      })
+      .catch(err => console.log(err));
     return () => datas;
   };
 
   const getDataChildListView = () => {
     const datas = Axios.get(
       `https://v2.jokeapi.dev/joke/Any?type=single&amount=${amount}`,
-    ).then(res => {
-      const newData = res?.data?.jokes;
-      setChildData(newData);
-    });
+    )
+      .then(res => {
+        const newData = res?.data?.jokes;
+        setChildData(newData);
+      })
+      .catch(err => console.log(err));
+
     return () => datas;
   };
 
   const onHandleShowChild = item => {
-    getDataChildListView(item);
+    getDataChildListView();
     setCurrent(item);
     setAmount(2);
     setBtn(true);
@@ -72,13 +76,19 @@ const Home = () => {
 
   const onRefresh = () => {
     setRefreshing(true);
+    setAmount(2);
     getDataListView();
     getDataChildListView();
+    setBtn(true);
     setRefreshing(false);
   };
 
   const onHandleGoTop = item => {
     setCurrent(item);
+    setIsShow(false);
+    setAmount(2);
+    getDataChildListView();
+    setBtn(true);
   };
 
   return (
@@ -92,59 +102,67 @@ const Home = () => {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }>
           <Text style={styles.title}>My Application</Text>
-          {data.map((item, i) => {
-            if (data.length < 1) {
+          {!data || data.length < 1 ? (
+            <View style={styles.wrapperLoading}>
+              <Text style={styles.titleLoading}>Fetching data...</Text>
+              <ActivityIndicator size={25} color={colors.red} />
+            </View>
+          ) : (
+            data.map((item, i) => {
               return (
-                <ActivityIndicator
-                  style={styles.loading}
-                  size={25}
-                  color={colors.red}
-                />
-              );
-            }
-            return (
-              <View key={i}>
-                <View style={styles.list}>
-                  <Text style={styles.titleList}>{`${i + 1}. ${
-                    i === 0 ? current : item
-                  }`}</Text>
-                  <View style={styles.buttonList}>
-                    <Button
-                      type={i === 0 ? 'top' : ''}
-                      onPress={() => onHandleGoTop(item)}
-                    />
-                    <Gap width={15} />
-                    <Button
-                      type="toggle"
-                      icon={isShow && current === item ? <ICDown /> : <ICUp />}
-                      onPress={() => onHandleShowChild(item)}
-                    />
+                <View key={i}>
+                  <View style={styles.list}>
+                    <Text style={styles.titleList}>{`${i + 1}. ${
+                      i === 0 ? current : item
+                    }`}</Text>
+                    <View style={styles.buttonList}>
+                      <Button
+                        type={i === 0 ? 'top' : ''}
+                        onPress={() => onHandleGoTop(item)}
+                      />
+                      <Gap width={15} />
+                      <Button
+                        type="toggle"
+                        icon={
+                          isShow && current === item ? <ICUp /> : <ICDown />
+                        }
+                        onPress={() => onHandleShowChild(item)}
+                      />
+                    </View>
                   </View>
-                </View>
-                {isShow && current === item && (
-                  <View>
-                    {childData.map(child => {
-                      const {id, joke} = child;
-                      if (!child) {
-                        return null;
-                      }
-                      return (
-                        <List
-                          key={id}
-                          title={joke}
-                          onPress={() => onHandleShowModal(joke)}
+                  {isShow && current === item && (
+                    <View>
+                      {!childData || childData.length < 1 ? (
+                        <ActivityIndicator
+                          style={styles.loadingChild}
+                          size={20}
+                          color={colors.red}
                         />
-                      );
-                    })}
-                    {btn && (
-                      <Button type="add-data" onPress={onHandleAddData} />
-                    )}
-                    <Gap height={48} />
-                  </View>
-                )}
-              </View>
-            );
-          })}
+                      ) : (
+                        childData.map(child => {
+                          const {id, joke} = child;
+                          if (!child) {
+                            return null;
+                          }
+                          return (
+                            <List
+                              key={id}
+                              title={joke}
+                              onPress={() => onHandleShowModal(joke)}
+                            />
+                          );
+                        })
+                      )}
+                      {btn && (
+                        <Button type="add-data" onPress={onHandleAddData} />
+                      )}
+                      <Gap height={48} />
+                    </View>
+                  )}
+                </View>
+              );
+            })
+          )}
         </ScrollView>
       </View>
       {isModalVisible && (
@@ -192,10 +210,23 @@ const styles = StyleSheet.create({
   buttonList: {
     flexDirection: 'row',
   },
-  loading: {
+  wrapperLoading: {
     flex: 1,
+    flexDirection: 'row',
     marginTop: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  titleLoading: {
+    fontSize: 14,
+    letterSpacing: 2,
+    marginRight: 12,
+    color: colors.red,
+    fontWeight: '700',
+  },
+  loadingChild: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 12,
   },
 });
