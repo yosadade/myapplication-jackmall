@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
-import {Button, CustomModal, Gap, List} from '../../components';
+import {Button, CustomModal, Gap, List, Message} from '../../components';
 import {colors} from '../../utils';
 import {ICDown, ICUp} from '../../assets';
 import Axios from 'axios';
@@ -123,14 +123,9 @@ const Home = () => {
           }>
           <Text style={styles.title}>My Application</Text>
           {!connection ? (
-            <View style={styles.wrapperLoading}>
-              <Text style={styles.titleLoading}>No Internet</Text>
-            </View>
+            <Message type="no-internet" onPress={getDataListView} />
           ) : !data || data.length < 1 ? (
-            <View style={styles.wrapperLoading}>
-              <Text style={styles.titleLoading}>Fetching data...</Text>
-              <ActivityIndicator size={25} color={colors.red} />
-            </View>
+            <Message />
           ) : (
             data.map((item, i) => {
               return (
