@@ -24,6 +24,7 @@ const Home = () => {
   const [amount, setAmount] = useState(2);
   const [btn, setBtn] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [connection, setConnection] = useState(true);
 
   useEffect(() => {
     getDataListView();
@@ -35,7 +36,8 @@ const Home = () => {
         const newData = res.data.categories;
         setData(newData);
       })
-      .catch(() =>
+      .catch(() => {
+        setConnection(false);
         showMessage({
           message: 'Failed to fetching data, please check your connection',
           type: 'danger',
@@ -43,8 +45,8 @@ const Home = () => {
             justifyContent: 'center',
             alignItems: 'center',
           },
-        }),
-      );
+        });
+      });
     return () => datas;
   };
 
@@ -120,7 +122,11 @@ const Home = () => {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }>
           <Text style={styles.title}>My Application</Text>
-          {!data || data.length < 1 ? (
+          {!connection ? (
+            <View style={styles.wrapperLoading}>
+              <Text style={styles.titleLoading}>No Internet</Text>
+            </View>
+          ) : !data || data.length < 1 ? (
             <View style={styles.wrapperLoading}>
               <Text style={styles.titleLoading}>Fetching data...</Text>
               <ActivityIndicator size={25} color={colors.red} />
